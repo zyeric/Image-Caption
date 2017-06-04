@@ -1,2 +1,4 @@
-data/
+data/image_vgg19_block5_pool_feature.h5
+data/image_vgg19_fc1_feature.h5
+data/image_vgg19_fc2_feature.h5
 .idea/
