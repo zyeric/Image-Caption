@@ -6,54 +6,38 @@ import tensorflow as tf
 
 import configuration
 import show_and_tell_model
+import ops.inputs as input_op
+import read_data
 
 model_config = configuration.ModelConfig()
 training_config = configuration.TrainingConfig()
 
-g = tf.Graph()
-with g.as_default():
-    # Build the model.
-    model = show_and_tell_model.ShowAndTellModel(
-        model_config, mode="train", train_inception=False)
-    model.build()
 
 
-    learning_rate = tf.constant(training_config.initial_learning_rate)
-    if training_config.learning_rate_decay_factor > 0:
-        num_batches_per_epoch = (training_config.num_examples_per_epoch /
-                                 model_config.batch_size)
-        decay_steps = int(num_batches_per_epoch *
-                          training_config.num_epochs_per_decay)
+iter = read_data.DataIterator(encoded_image_path="data/image_vgg19_fc1_feature.h5",
+                              dic_path="data/dictionary.txt",
+                              caption_vector_path="data/train_vector.txt")
 
-        def _learning_rate_decay_fn(learning_rate, global_step):
-            return tf.train.exponential_decay(
-              learning_rate,
-              global_step,
-              decay_steps=decay_steps,
-              decay_rate=training_config.learning_rate_decay_factor,
-              staircase=True)
+sess = tf.InteractiveSession()
 
-        learning_rate_decay_fn = _learning_rate_decay_fn
+model = show_and_tell_model.ShowAndTellModel(model_config, mode="train", train_inception=False)
+model.build()
 
-    train_op = tf.contrib.layers.optimize_loss(
-        loss=model.total_loss,
-        global_step=model.global_step,
-        learning_rate=learning_rate,
-        optimizer=training_config.optimizer,
-        clip_gradients=training_config.clip_gradients,
-        learning_rate_decay_fn=learning_rate_decay_fn)
+sess.run(tf.global_variables_initializer())
 
-    # Set up the Saver for saving and restoring model checkpoints.
-    saver = tf.train.Saver(max_to_keep=training_config.max_checkpoints_to_keep)
+# images_and_captions = input_op.init_image_embeddings_and_captions(read_size=1000)
+#
+# batch1_images = []
+# batch1_captions = []
+# for image, caption in images_and_captions:
+#     batch1_images.append(image)
+#     batch1_captions.append(caption)
+#     if len(batch1_images) == 32:
+#         break
+# batch1_in_seqs, batch1_tar_seqs, batch1_masks = input_op.build_batch(batch1_captions)
 
-tf.contrib.slim.learning.train(
-      train_op,
-      "train_log",
-      log_every_n_steps=1,
-      graph=g,
-      global_step=model.global_step,
-      number_of_steps=100000,
-      init_fn=model.init_fn,
-      saver=saver)
-
-tf.app.run()
+for i in range(10000):
+    images, in_seqs, tar_seqs, masks = iter.next_batch(32)
+    loss = model.run_batch(sess, images, in_seqs, tar_seqs, masks)
+    if i % 100 == 0:
+        print(loss)

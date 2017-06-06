@@ -27,10 +27,29 @@ def init_image_embeddings_and_captions(read_size):
             nums = []
             for e in strs:
                 nums.append(int(e))
-            images_and_captions.append([tf.constant(train_set[index]), tf.constant(nums)])
+            images_and_captions.append([train_set[index], nums])
 
     print("Finish loading data")
     return images_and_captions
+
+def build_batch(captions):
+    input_seqs = []
+    target = []
+    masks = []
+    max_len = 0
+    for caption in captions:
+        if len(caption) > max_len:
+            max_len = len(caption)
+
+    max_len = max_len-1
+
+    for caption in captions:
+        want_len = len(caption)-1
+        input_seqs.append(caption[0:want_len] + [0]*(max_len-want_len))
+        target.append(caption[1:(want_len+1)] + [0]*(max_len-want_len))
+        masks.append([1]*want_len+[0]*(max_len-want_len))
+
+    return input_seqs, target, masks
 
 def batch_with_dynamic_pad(images_and_captions,
                            batch_size,

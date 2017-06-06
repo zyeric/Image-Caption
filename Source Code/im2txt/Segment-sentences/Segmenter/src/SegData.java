@@ -30,7 +30,7 @@ public class SegData {
   private static Map<String, Integer> M = new HashMap<String, Integer>();
   
   public static ArrayList<ArrayList<String>> readInSentences(String Filename) {
-	  ArrayList<ArrayList<String>> ret = new ArrayList<ArrayList<String>  >();
+	  ArrayList<ArrayList<String>> ret = new ArrayList<ArrayList<String> >();
 	  try {
 		BufferedReader br = new BufferedReader(new FileReader(Filename));
 
@@ -72,7 +72,7 @@ public class SegData {
   public static ArrayList<ArrayList<List<Integer>>> doMap(ArrayList<ArrayList<String> > sts, CRFClassifier<CoreLabel> segmenter) {
 	  ArrayList<ArrayList<List<Integer>>> ret = new ArrayList<ArrayList<List<Integer>>>();
 	  
-	  int dicCnt = 0;
+	  int dicCnt = 1;
 	  
 	  for (int i = 0; i < sts.size(); ++i) {
 		  ArrayList<String> cur = sts.get(i);

@@ -10,8 +10,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-#from im2txt.ops import image_embedding
-#from im2txt.ops import image_processing
 from ops import inputs as input_ops
 
 
@@ -65,14 +63,13 @@ class ShowAndTellModel(object):
     # A float32 Tensor with shape [batch_size * padded_length].
     self.target_cross_entropy_loss_weights = None
 
-    # Collection of variables from the inception submodel.
-    self.inception_variables = []
-
     # Function to restore the inception submodel from checkpoint.
     self.init_fn = None
 
     # Global step Tensor.
     self.global_step = None
+
+    self.train_op = None
 
   def is_training(self):
     """Returns true if the model is built for training mode."""
@@ -101,24 +98,13 @@ class ShowAndTellModel(object):
       target_seqs = None
       input_mask = None
     else:
-      images_and_captions = input_ops.init_image_embeddings_and_captions(read_size=2000)
+      self.images = tf.placeholder(tf.float32, shape=[self.config.batch_size, 4096])
+      self.input_seqs = tf.placeholder(tf.int32, shape=[self.config.batch_size, None])
+      self.target_seqs = tf.placeholder(tf.int32, shape=[self.config.batch_size, None])
+      self.input_mask = tf.placeholder(tf.int32, shape=[self.config.batch_size, None])
 
-      # Batch inputs.
-      queue_capacity = (2 * self.config.num_preprocess_threads *
-                        self.config.batch_size)
-      images, input_seqs, target_seqs, input_mask = (
-          input_ops.batch_with_dynamic_pad(images_and_captions,
-                                           batch_size=self.config.batch_size,
-                                           queue_capacity=queue_capacity))
-
-    self.images = images
-    self.input_seqs = input_seqs
-    self.target_seqs = target_seqs
-    self.input_mask = input_mask
 
   def build_image_embeddings(self):
-      self.inception_variables = tf.get_collection(
-          tf.GraphKeys.GLOBAL_VARIABLES, scope="InceptionV3")
 
       # Map inception output into embedding space.
       with tf.variable_scope("image_embedding") as scope:
@@ -234,6 +220,7 @@ class ShowAndTellModel(object):
       batch_loss = tf.div(tf.reduce_sum(tf.multiply(losses, weights)),
                           tf.reduce_sum(weights),
                           name="batch_loss")
+
       tf.losses.add_loss(batch_loss)
       total_loss = tf.losses.get_total_loss()
 
@@ -247,18 +234,6 @@ class ShowAndTellModel(object):
       self.target_cross_entropy_losses = losses  # Used in evaluation.
       self.target_cross_entropy_loss_weights = weights  # Used in evaluation.
 
-  def setup_inception_initializer(self):
-    """Sets up the function to restore inception variables from checkpoint."""
-    if self.mode != "inference":
-      # Restore inception variables only.
-      saver = tf.train.Saver(self.inception_variables)
-
-      def restore_fn(sess):
-        tf.logging.info("Restoring Inception variables from checkpoint file %s",
-                        self.config.inception_checkpoint_file)
-        saver.restore(sess, self.config.inception_checkpoint_file)
-
-      self.init_fn = restore_fn
 
   def setup_global_step(self):
     """Sets up the global step Tensor."""
@@ -276,6 +251,12 @@ class ShowAndTellModel(object):
     self.build_image_embeddings()
     self.build_seq_embeddings()
     self.build_model()
-    #self.setup_inception_initializer()
     self.setup_global_step()
     print("Finish building model")
+    self.train_op = tf.train.AdamOptimizer().minimize(self.total_loss)
+
+  def run_batch(self, session, _images, _input_seqs, _target_seqs, _input_mask):
+    #session.run(tf.initialize_all_variables())
+    feed = {self.input_seqs: _input_seqs, self.images: _images, self.input_mask: _input_mask, self.target_seqs: _target_seqs}
+    loss, _ = session.run([self.total_loss, self.train_op], feed_dict=feed)
+    return loss
