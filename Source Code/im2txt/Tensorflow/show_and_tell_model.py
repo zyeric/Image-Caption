@@ -85,18 +85,25 @@ class ShowAndTellModel(object):
     """
     if self.mode == "inference":
       # In inference mode, images and inputs are fed via placeholders.
-      image_feed = tf.placeholder(dtype=tf.string, shape=[], name="image_feed")
+      image_feed = tf.placeholder(dtype=tf.float32, shape=[4096], name="image_feed")
       input_feed = tf.placeholder(dtype=tf.int64,
                                   shape=[None],  # batch_size
                                   name="input_feed")
 
       # Process image and insert batch dimensions.
-      #images = tf.expand_dims(self.process_image(image_feed), 0)
+      images = tf.expand_dims(image_feed, 0)
       input_seqs = tf.expand_dims(input_feed, 1)
+
+      print(images)
 
       # No target sequences or input mask in inference mode.
       target_seqs = None
       input_mask = None
+
+      self.images = images
+      self.input_seqs = input_seqs
+      self.input_mask = input_mask
+      self.target_seqs = target_seqs
     else:
       self.images = tf.placeholder(tf.float32, shape=[self.config.batch_size, 4096])
       self.input_seqs = tf.placeholder(tf.int32, shape=[self.config.batch_size, None])
@@ -253,7 +260,8 @@ class ShowAndTellModel(object):
     self.build_model()
     self.setup_global_step()
     print("Finish building model")
-    self.train_op = tf.train.AdamOptimizer().minimize(self.total_loss)
+    if self.mode == "train":
+        self.train_op = tf.train.AdamOptimizer().minimize(self.total_loss)
 
   def run_batch(self, session, _images, _input_seqs, _target_seqs, _input_mask):
     #session.run(tf.initialize_all_variables())
