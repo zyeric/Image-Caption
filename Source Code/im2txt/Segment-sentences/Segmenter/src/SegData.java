@@ -72,7 +72,12 @@ public class SegData {
   public static ArrayList<ArrayList<List<Integer>>> doMap(ArrayList<ArrayList<String> > sts, CRFClassifier<CoreLabel> segmenter) {
 	  ArrayList<ArrayList<List<Integer>>> ret = new ArrayList<ArrayList<List<Integer>>>();
 	  
-	  int dicCnt = 1;
+	  // add flag for start of sentence and end of sentence
+	  
+	  M.put("<S>", 1);
+	  M.put("</S>", 2);
+	  
+	  int dicCnt = 3;
 	  
 	  for (int i = 0; i < sts.size(); ++i) {
 		  ArrayList<String> cur = sts.get(i);
@@ -118,10 +123,14 @@ public class SegData {
 			bw.write(cnt.toString());
 			bw.write("\n");
 			for (List<Integer> f : e) {
+				// start
+				bw.write("1 ");
 				for (Integer g : f) {
 					bw.write(g.toString());
 					bw.write(' ');
 				}
+				// end
+				bw.write("2");
 				bw.write('\n');
 			}
 			cnt += 1;
