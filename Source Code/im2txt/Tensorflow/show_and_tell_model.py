@@ -94,7 +94,7 @@ class ShowAndTellModel(object):
       images = tf.expand_dims(image_feed, 0)
       input_seqs = tf.expand_dims(input_feed, 1)
 
-      print(images)
+      #print(images)
 
       # No target sequences or input mask in inference mode.
       target_seqs = None

@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-import json
 import configuration
 import show_and_tell_model
 import read_data
@@ -27,10 +26,8 @@ saver = tf.train.Saver()
 
 loss_stored = []
 
-# step = epoch * train_data_set / batch_size =
-# current 10 epoch
-
-for i in range(500):
+# step = epoch * train_data_set / batch_size
+for i in range(1000000):
     images, in_seqs, tar_seqs, masks = iter.next_batch(model_config.batch_size)
     loss = model.run_batch(sess, images, in_seqs, tar_seqs, masks)
     #every 100 steps print loss value

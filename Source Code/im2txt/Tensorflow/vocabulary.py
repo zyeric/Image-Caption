@@ -42,9 +42,9 @@ class Vocabulary(object):
     self.reverse_vocab = reverse_vocab  # reverse_vocab[id] = word
 
     # Save special word ids.
-    self.start_id = vocab[start_word]
-    self.end_id = vocab[end_word]
-    self.unk_id = vocab[unk_word]
+    self.start_id = vocab[start_word] + 1
+    self.end_id = vocab[end_word] + 1
+    self.unk_id = vocab[unk_word] + 1
 
   def word_to_id(self, word):
     """Returns the integer word id of a word string."""

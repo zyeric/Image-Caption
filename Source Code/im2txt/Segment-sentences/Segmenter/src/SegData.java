@@ -147,12 +147,21 @@ public class SegData {
 	  try {
 		BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
 		
+		int dic_size = M.size();
 		Iterator it = M.entrySet().iterator();
+		
+		String [] output_str = new String[dic_size];
 		
 		while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry)it.next();
-			bw.write(pair.getKey() + " " + pair.getValue().toString() + "\n");
+			//bw.write(pair.getKey() + " " + pair.getValue().toString() + "\n");
+			Integer pos = new Integer(pair.getValue().toString());
+			output_str[pos - 1] = pair.getKey().toString();
 			it.remove();
+		}
+		
+		for (int i = 0; i < dic_size; ++i) {
+			bw.write(output_str[i] + " " + (i+1) + "\n");
 		}
 		
 		bw.close();
