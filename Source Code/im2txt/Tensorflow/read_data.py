@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 
 class DataIterator:
-    def __init__(self, encoded_image_path, dic_path, caption_vector_path):
+    def __init__(self, encoded_image_path, caption_vector_path):
 
         # structure of h5 file ['test_set', 'train_set', 'validation_set']
         file = h5py.File(encoded_image_path, 'r')
@@ -23,15 +23,6 @@ class DataIterator:
                 images_and_captions.append([encoded_images[index], nums])
 
         self.images_and_captions = images_and_captions
-
-        id2word = {}
-        dic_size = 0
-        for line in open(dic_path):
-            strs = line.split()
-            dic_size = dic_size + 1
-            id2word[int(strs[1])] = strs[0]
-        self.dic_size = dic_size
-        self.id2word = id2word
 
         self.iter_order = np.random.permutation(len(images_and_captions))
         self.cur_iter_index = 0
