@@ -1,5 +1,5 @@
 train_log/
-train_log_12500/
+check_point_files/
 data/image_vgg19_block5_pool_feature.h5
 data/image_vgg19_fc1_feature.h5
 data/image_vgg19_fc2_feature.h5
