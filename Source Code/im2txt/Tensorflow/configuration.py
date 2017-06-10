@@ -54,7 +54,7 @@ class ModelConfig(object):
     self.initializer_scale = 0.08
 
     # LSTM input and output dimensionality, respectively.
-    self.embedding_size = 512
+    self.embedding_size = 768
     self.num_lstm_units = 512
 
     # If < 1.0, the dropout keep probability applied to LSTM variables.

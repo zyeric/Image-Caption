@@ -35,18 +35,18 @@ def get_image_parts(block_output):
 
 vocab = vocabulary.Vocabulary("data/no_segment/dictionary.txt")
 
-check_point_step = 200000
+check_point_step = 50000
 
 model = inference_wrapper_spatial.InferenceWrapper()
 restore_fn = model.build_graph_from_config(configuration.ModelConfig(),
-                                               "train_log_spatial_emb_512/{}.ckpt".format(check_point_step))
+                                               "train_log/{}.ckpt".format(check_point_step))
 
 
 file = h5py.File("data/image_vgg19_fc1_feature.h5", 'r')
 file_block = h5py.File("data/image_vgg19_block5_pool_feature.h5", 'r')
 
-encoded_images = file['validation_set']
-images_parts = file_block['validation_set']
+encoded_images = file['test_set']
+images_parts = file_block['test_set']
 
 sess = tf.InteractiveSession()
 restore_fn(sess)
@@ -68,13 +68,13 @@ generator = caption_generator_spatial.CaptionGenerator(model, vocab)
 #             print("  %d) %s (p=%f)" % (i, sentence, math.exp(caption.logprob)))
 
 # 下面的代码按网络评分格式输出到文件
-with open('D:\Image-Caption\Results\\validation_output\\valid_caption_output_spatial_no_segment_{}_emb_512.txt'.format(check_point_step), 'w') as f:
+with open('D:\Image-Caption\Results\\test_set_output\\test_caption_output_spatial_no_segment_{}_emb_768.txt'.format(check_point_step), 'w') as f:
     for index in range(1000):
         captions = generator.beam_search(sess, encoded_images[index], get_image_parts(images_parts[index]))
         caption = captions[0]
         sentence = [vocab.id_to_word(w - 1) for w in caption.sentence[1:-1]]
         full_str = "".join(sentence)
-        f.write(repr(8000+index))
+        f.write(repr(9000+index))
         for word in full_str:
             f.write(' {}'.format(word))
         f.write('\n')
