@@ -10,8 +10,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from ops import inputs as input_ops
-
 
 class ShowAndTellModel(object):
 
@@ -261,7 +259,7 @@ class ShowAndTellModel(object):
     self.setup_global_step()
     print("Finish building model")
     if self.mode == "train":
-        self.train_op = tf.train.AdamOptimizer().minimize(self.total_loss)
+        self.train_op = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(self.total_loss)
 
   def run_batch(self, session, _images, _input_seqs, _target_seqs, _input_mask):
     #session.run(tf.initialize_all_variables())
