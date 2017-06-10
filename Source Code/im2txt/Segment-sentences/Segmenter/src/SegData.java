@@ -27,14 +27,16 @@ import edu.stanford.nlp.ling.CoreLabel;
 public class SegData {
 
   private static final String basedir = System.getProperty("SegDemo", "data");
+  // M is segment-map
   private static Map<String, Integer> M = new HashMap<String, Integer>();
   
   public static ArrayList<ArrayList<String>> readInSentences(String Filename) {
 	  ArrayList<ArrayList<String>> ret = new ArrayList<ArrayList<String> >();
 	  try {
-		BufferedReader br = new BufferedReader(new FileReader(Filename));
-
+		  
+     	BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Filename)));
 		String str = "";
+		//use regex to recognize test ID
 		Pattern pt = Pattern.compile("[0-9]*");
 		Boolean isFirst = true;
 		
@@ -72,8 +74,9 @@ public class SegData {
   public static ArrayList<ArrayList<List<Integer>>> doMap(ArrayList<ArrayList<String> > sts, CRFClassifier<CoreLabel> segmenter) {
 	  ArrayList<ArrayList<List<Integer>>> ret = new ArrayList<ArrayList<List<Integer>>>();
 	  
-	  // add flag for start of sentence and end of sentence
 	  
+	  // build the dictionary
+	  // add flag for start of sentence and end of sentence
 	  M.put("<S>", 1);
 	  M.put("</S>", 2);
 	  
@@ -82,9 +85,7 @@ public class SegData {
 	  for (int i = 0; i < sts.size(); ++i) {
 		  ArrayList<String> cur = sts.get(i);
 		  for (int j = 0; j < cur.size(); ++j) {
-			  //System.out.println(cur.get(j));
 			  List<String> tmp = segmenter.segmentString(cur.get(j));
-			  //System.out.println(tmp);
 			  for (String e : tmp) {
 				  if (M.containsKey(e)) {
 					  continue;
@@ -96,6 +97,7 @@ public class SegData {
 		  }
 	  }
 	  
+	  // use dictionary to process raw sentences to vectors
 	  for (int i = 0; i < sts.size(); ++i) {
 		  ArrayList<String> cur = sts.get(i);
 		  ArrayList<List<Integer>> _ = new ArrayList<List<Integer>>();
@@ -115,6 +117,8 @@ public class SegData {
   
   public static void outputVector(ArrayList<ArrayList<List<Integer>>> res, String fileName) {
 	  try {
+		  
+		  //output vectors to file
 		BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
 		
 		Integer cnt = 1;
@@ -145,6 +149,7 @@ public class SegData {
   
   public static void outputMap(String fileName) {
 	  try {
+		  // output dictionary to file
 		BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
 		
 		int dic_size = M.size();
@@ -154,7 +159,6 @@ public class SegData {
 		
 		while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry)it.next();
-			//bw.write(pair.getKey() + " " + pair.getValue().toString() + "\n");
 			Integer pos = new Integer(pair.getValue().toString());
 			output_str[pos - 1] = pair.getKey().toString();
 			it.remove();
@@ -171,31 +175,30 @@ public class SegData {
 	}
   }
   
+  public static void doSegment(String[] args) {
+	  
+	    Properties props = new Properties();
+	    props.setProperty("sighanCorporaDict", basedir);
+	    props.setProperty("serDictionary", basedir + "/dict-chris6.ser.gz");
+	    if (args.length > 0) {
+	      props.setProperty("testFile", args[0]);
+	    }
+	    props.setProperty("inputEncoding", "UTF-8");
+	    props.setProperty("sighanPostProcessing", "true");
+
+	    CRFClassifier<CoreLabel> segmenter = new CRFClassifier<>(props);
+	    segmenter.loadClassifierNoExceptions(basedir + "/ctb.gz", props);
+	    
+	    String inSentencesFileName = "D:\\train.txt";
+	    String outSentencesFileName = "D:\\train_vector.txt";
+	    String outDictionaryFileName = "D:\\dictionary.txt";
+	    
+	    outputVector(doMap(readInSentences(inSentencesFileName), segmenter), outSentencesFileName);
+	    outputMap(outDictionaryFileName);
+  }
+  
   public static void main(String[] args) throws Exception {
-    //System.setOut(new PrintStream(System.out, true, "utf-8"));
-
-    Properties props = new Properties();
-    props.setProperty("sighanCorporaDict", basedir);
-    // props.setProperty("NormalizationTable", "data/norm.simp.utf8");
-    // props.setProperty("normTableEncoding", "UTF-8");
-    // below is needed because CTBSegDocumentIteratorFactory accesses it
-    props.setProperty("serDictionary", basedir + "/dict-chris6.ser.gz");
-    if (args.length > 0) {
-      props.setProperty("testFile", args[0]);
-    }
-    props.setProperty("inputEncoding", "UTF-8");
-    props.setProperty("sighanPostProcessing", "true");
-
-    CRFClassifier<CoreLabel> segmenter = new CRFClassifier<>(props);
-    segmenter.loadClassifierNoExceptions(basedir + "/ctb.gz", props);
-    
-    String inSentencesFileName = "D:\\train.txt";
-    String outSentencesFileName = "D:\\train_vector.txt";
-    String outDictionaryFileName = "D:\\dictionary.txt";
-    
-    outputVector(doMap(readInSentences(inSentencesFileName), segmenter), outSentencesFileName);
-    
-    outputMap(outDictionaryFileName);
+	    doSegment(args);
   }
 
 }
