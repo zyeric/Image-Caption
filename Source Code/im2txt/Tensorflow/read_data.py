@@ -49,7 +49,31 @@ class DataIterator:
         return images, input_seqs, target, masks
 
 
-
+    # transform raw captions to three parts
+    # an input caption meets following requirements:
+    #   1) start with 1 (the start flag)
+    #   2) end with 2 (the end flag)
+    # assume the batch size is 4, and the captions are:
+    # [1, 3, 4, 5, 6, 2]
+    # [1, 5, 6, 7, 2]
+    # [1, 5, 3, 2]
+    # [1, 7, 9, 10, 2]
+    # then the outputs are
+    # input_seqs:
+    # [1, 3, 4, 5, 6]
+    # [1, 5, 6, 7, 0]
+    # [1, 5, 3, 0, 0]
+    # [1, 7, 9, 10, 0]
+    # target_seqs:
+    # [3, 4, 5, 6, 2]
+    # [5, 6, 7, 2, 0]
+    # [5, 3, 2, 0, 0]
+    # [7, 9, 10, 2, 0]
+    # input_masks:
+    # [1, 1, 1, 1, 1]
+    # [1, 1, 1, 1, 0]
+    # [1, 1, 1, 0, 0]
+    # [1. 1, 1, 1, 0]
     def build_caption_batch(self, captions):
         input_seqs = []
         target = []

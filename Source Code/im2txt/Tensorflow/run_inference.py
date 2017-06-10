@@ -21,7 +21,7 @@ restore_fn(sess)
 
 generator = caption_generator.CaptionGenerator(model, vocab)
 
-# 下面的代码输出了一个beam=3的所有内容
+# output three optional sentences for each image, ranking by probability in decreasing order
 # with open('train_caption_output.txt', 'w') as f:
 #     for iter in range(400):
 #         index = 2 + iter * 20
@@ -35,13 +35,12 @@ generator = caption_generator.CaptionGenerator(model, vocab)
 #             f.write("  %d) %s (p=%f)\r\n" % (i, sentence, math.exp(caption.logprob)))
 #             print("  %d) %s (p=%f)" % (i, sentence, math.exp(caption.logprob)))
 
-# 下面的代码按网络评分格式输出到文件
+# output inferencing result following requirements in the submitting web page
 with open('D:\Image-Caption\Results\\validation_output\\valid_caption_output_segment_{}_emb_512.txt'.format(check_point_steps),
             'w') as f:
     for index in range(1000):
         captions = generator.beam_search(sess, encoded_images[index])
         caption = captions[0]
-        #print(caption.sentence)
         sentence = [vocab.id_to_word(w - 1) for w in caption.sentence[1:-1]]
         full_str = "".join(sentence)
         f.write(repr(8000 + index))

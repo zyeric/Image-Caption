@@ -13,20 +13,15 @@ import tensorflow as tf
 
 class ShowAndTellModel(object):
 
-  def __init__(self, config, mode, train_inception=False):
+  def __init__(self, config, mode):
     """Basic setup.
     Args:
       config: Object containing configuration parameters.
       mode: "train", "eval" or "inference".
-      train_inception: Whether the inception submodel variables are trainable.
     """
     assert mode in ["train", "eval", "inference"]
     self.config = config
     self.mode = mode
-    self.train_inception = train_inception
-
-    # Reader for the input data.
-    self.reader = tf.TFRecordReader()
 
     # To match the "Show and Tell" paper we initialize all variables with a
     # random uniform initializer.
@@ -34,7 +29,7 @@ class ShowAndTellModel(object):
         minval=-self.config.initializer_scale,
         maxval=self.config.initializer_scale)
 
-    # A float32 Tensor with shape [batch_size, height, width, channels].
+    # A float32 Tensor with shape [batch_size, 4096].
     self.images = None
 
     # An int32 Tensor with shape [batch_size, padded_length].
@@ -92,8 +87,6 @@ class ShowAndTellModel(object):
       images = tf.expand_dims(image_feed, 0)
       input_seqs = tf.expand_dims(input_feed, 1)
 
-      #print(images)
-
       # No target sequences or input mask in inference mode.
       target_seqs = None
       input_mask = None
@@ -111,7 +104,7 @@ class ShowAndTellModel(object):
 
   def build_image_embeddings(self):
 
-      # Map inception output into embedding space.
+      # Map fc1 output into embedding space.
       with tf.variable_scope("image_embedding") as scope:
           image_embeddings = tf.contrib.layers.fully_connected(
               inputs=self.images,
